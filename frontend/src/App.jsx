@@ -30,7 +30,7 @@ function App() {
     [groupCount],
   )
 
-  const totalPages = Math.max(1, Math.ceil(quizzes.length * pageSize))
+  const totalPages = Math.max(1, Math.ceil(quizzes.length))
 
   // const paginatedQuizzes = useMemo(() => {
   //   const startIndex = (page - 1) * pageSize
