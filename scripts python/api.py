@@ -122,20 +122,35 @@ def getGroups():
 @app.post("/addquiz")
 def addQuiz(quiz : dict):
 
-    sys.exit(quiz)
-
     try:
 
         with get_connection() as connection:
             with connection.cursor() as cur:
 
-                QuizItens = quiz.items()
-                cur.execute(
-                        sql.SQL(
-                            "INSERT INTO {} (kanji, hiragana, translation, quiz_group) VALUES (%s, %s, %s, %s)"
-                        ).format(table_name),
-                        (QuizItens['kanji'], QuizItens['hiragana'], QuizItens['translation'], QuizItens['group']),
-                    )
+                selectLatestID =  sql.SQL(
+                    "SELECT MAX(id), MAX(quiz_group) from quizzes WHERE 1=1 "
+                    ).format(table_name)
+
+                cur.execute(selectLatestID)
+
+                rows = cur.fetchall()
+
+                for row in rows:
+
+                    latestId= row[0]
+
+                    latestQuizGroup= row[1]
+
+                    if((latestId + 1) % 100 == 0):
+                        latestQuizGroup  +=1
+
+                    QuizItens = quiz['quiz']
+                    cur.execute(
+                            sql.SQL(
+                                "INSERT INTO {} (kanji, hiragana, translation, quiz_group) VALUES (%s, %s, %s, %s)"
+                            ).format(table_name),
+                            (QuizItens['kanji'], QuizItens['hiragana'], QuizItens['translation'], latestQuizGroup),
+                        )
 
     except psycopg2.Error as error:
         return database_error_response(error)

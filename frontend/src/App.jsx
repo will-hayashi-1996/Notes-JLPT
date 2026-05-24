@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
+import toast, { Toaster } from "react-hot-toast";
 import './App.css'
 
 const api = axios.create({
@@ -18,7 +19,11 @@ function App() {
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
   const [currentQuiz,SetCurrentQuiz] = useState([])
-  const [newQuiz,SetNewQuiz]=useState(null)
+  const [newQuiz,SetNewQuiz]=useState({
+    kanji: null,
+    hiragana:null,
+    translation:null
+  })
 
   const groups = useMemo(
     () => Array.from({ length: groupCount }, (_, index) => index + 1),
@@ -55,11 +60,6 @@ function App() {
     loadGroups()
   }, [])
 
-  useEffect(() => {
-    if (!selectedGroup) {
-      setQuizzes([])
-      return
-    }
 
     async function loadQuizzes() {
       try {
@@ -98,6 +98,12 @@ function App() {
       }
     }
 
+  useEffect(() => {
+    if (!selectedGroup) {
+      setQuizzes([])
+      return
+    }
+
     loadQuizzes()
   }, [selectedGroup])
 
@@ -108,11 +114,40 @@ function App() {
 
   const insertNewQuiz =  async () => {
 
+    if( (newQuiz.kanji === null || newQuiz.kanji === '') || (newQuiz.hiragana === null || newQuiz.hiragana === '') ||  (newQuiz.translation === null || newQuiz.translation === '') ){
 
-      const response = await  api.post()
+      toast.error("Preencha todos os campos do formulário!")
+      return
+    }
 
+    setError('')
 
+    try{
 
+      const response = await  api.post('/addquiz', {
+           quiz: newQuiz ,
+      })
+      
+    } catch(error){
+      setError(`Could not insert new Quiz`)
+
+    } finally {
+
+      await loadQuizzes()
+
+      setisNewQuizModalShown(false)
+
+      SetNewQuiz(
+        {
+          kanji: null,
+          hiragana:null,
+          translation:null
+        }
+      )
+
+      toast.success("New Quiz Saved Successfully!")
+
+    }
 
 
   }
@@ -120,6 +155,7 @@ function App() {
   return (
 
     <>
+    <Toaster position="top-right" />
     <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-8">
       <section className="mx-auto flex max-w-6xl flex-col gap-6">
         <header className="flex flex-col gap-1">
@@ -243,51 +279,94 @@ function App() {
       </section>
     </main>
 
-      { isNewQuizModalShown &&  
-      (
-         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-            <div className="w-96 rounded-lg bg-white p-6 shadow-lg">
-                <h2 className="mb-4 text-xl font-bold">
-                    Adicionar Novo Quiz
-                </h2>
-
-                <p>Kanji</p>
-
-                <input type="text" name="" id="" />
-
-                <p>Hiragana</p>
-
-                <input type="text" name="" id="" />
-
-                <p>Translation</p>
-
-                <input type="text" name="" id="" />
-
-
-
+      {isNewQuizModalShown && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4">
+          <div className="w-full max-w-md rounded-lg bg-white shadow-2xl">
+            <div className="border-b border-slate-200 px-6 py-5">
+              <h2 className="text-xl font-bold text-slate-950">
+                Adicionar Novo Quiz
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Group {selectedGroup}
+              </p>
             </div>
 
-              <div className='flex my-2 gap-2'>
-                <button
-                    onClick={() => setisNewQuizModalShown(false)}
-                    className="rounded bg-red-600 px-4 py-2 text-white"
-                >
-                    Close
-                </button>
+            <div className="space-y-4 px-6 py-5">
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-slate-700">
+                  Kanji
+                </span>
+                <input
+                  type="text"
+                  value={newQuiz.kanji ?? ''}
+                  onChange={(event) => {
+                    SetNewQuiz((current) => ({
+                      ...current,
+                      kanji: event.target.value,
+                    }))
+                  }}
+                  className="h-10 w-full rounded border border-slate-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  placeholder="返事"
+                />
+              </label>
 
-                <button
-                    onClick={() => setisNewQuizModalShown(false)}
-                    className="rounded bg-red-600 px-4 py-2 text-white"
-                >
-                    Add Quiz
-                </button>
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-slate-700">
+                  Hiragana
+                </span>
+                <input
+                  type="text"
+                  value={newQuiz.hiragana ?? ''}
+                  onChange={(event) => {
+                    SetNewQuiz((current) => ({
+                      ...current,
+                      hiragana: event.target.value,
+                    }))
+                  }}
+                  className="h-10 w-full rounded border border-slate-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  placeholder="へんじ"
+                />
+              </label>
 
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-slate-700">
+                  Translation
+                </span>
+                <input
+                  type="text"
+                  value={newQuiz.translation ?? ''}
+                  onChange={(event) => {
+                    SetNewQuiz((current) => ({
+                      ...current,
+                      translation: event.target.value,
+                    }))
+                  }}
+                  className="h-10 w-full rounded border border-slate-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  placeholder="Reply"
+                />
+              </label>
             </div>
 
-         </div>
-        )
+            <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setisNewQuizModalShown(false)}
+                className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                Close
+              </button>
 
-      }    
+              <button
+                type="button"
+                onClick={() => insertNewQuiz()}
+                className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                Add Quiz
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
