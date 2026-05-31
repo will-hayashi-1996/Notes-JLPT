@@ -3,15 +3,20 @@ from fastapi.responses import JSONResponse
 import psycopg2
 from psycopg2 import sql
 from fastapi.middleware.cors import CORSMiddleware
+import os
 import sys
 
 
 app = FastAPI()
-table_name = sql.Identifier("public", "quizzes")
+table_name = sql.Identifier("quizzes schema", "quizzes")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://192.168.100.9:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -19,11 +24,11 @@ app.add_middleware(
 
 def get_connection():
     return psycopg2.connect(
-        host="localhost",
-        dbname="QuizDB",
-        user="postgres",
-        password="123456",
-        port=5432
+        host=os.getenv("DB_HOST", "localhost"),
+        dbname=os.getenv("DB_NAME", "QuizDb"),
+        user=os.getenv("DB_USER", "postgres"),
+        password=os.getenv("DB_PASSWORD", "123456"),
+        port=int(os.getenv("DB_PORT", "5432")),
     )
 
 
@@ -120,15 +125,13 @@ def getGroups():
 
 
 @app.post("/addquiz")
-def addQuiz(quiz : dict):
-
+def addQuiz(quiz: dict):
     try:
-
         with get_connection() as connection:
             with connection.cursor() as cur:
 
                 selectLatestID =  sql.SQL(
-                    "SELECT MAX(id), MAX(quiz_group) from quizzes WHERE 1=1 "
+                    "SELECT MAX(id), MAX(quiz_group) FROM {}"
                     ).format(table_name)
 
                 cur.execute(selectLatestID)

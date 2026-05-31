@@ -6,7 +6,7 @@ from psycopg2 import sql
 
 DB_CONFIG = {
     "host": "localhost",
-    "dbname": "QuizDB",
+    "dbname": "QuizDb",
     "user": "postgres",
     "password": "123456",
     "port": 5432,
@@ -17,7 +17,7 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
 
     csv_path = Path(__file__).with_name("japanese_vocab_fixed_semicolon.csv")
-    table_name = sql.Identifier("public", "quizzes")
+    table_name = sql.Identifier("quizzes schema", "quizzes")
 
     with open(csv_path, "r", encoding="utf-8-sig", newline="") as csvFile:
         reader = csv.reader(csvFile, delimiter=";")

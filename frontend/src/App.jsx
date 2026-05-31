@@ -4,7 +4,7 @@ import toast, { Toaster } from "react-hot-toast";
 import './App.css'
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000',
+  baseURL: '/api',
 })
 
 const pageSize = 10
