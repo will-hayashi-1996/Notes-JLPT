@@ -263,7 +263,7 @@ function App() {
             </button>
 
             <span className="text-sm text-slate-500">
-              Showing {currentQuiz?.length * page } of {quizzes.length * pageSize}
+              Showing { currentQuiz?.length < 10 ? (10 * (page-1)) + (currentQuiz?.length) : (currentQuiz?.length * page) } of {quizzes.length * pageSize}
             </span>
 
             <button
