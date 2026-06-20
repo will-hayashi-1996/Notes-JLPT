@@ -130,29 +130,41 @@ def addQuiz(quiz: dict):
         with get_connection() as connection:
             with connection.cursor() as cur:
 
-                selectLatestID =  sql.SQL(
-                    "SELECT MAX(id), MAX(quiz_group) FROM {}"
-                    ).format(table_name)
+                selectLatestID = sql.SQL("SELECT MAX(id), MAX(quiz_group) FROM {}").format(table_name)
 
                 cur.execute(selectLatestID)
 
-                rows = cur.fetchall()
+                rows2 = cur.fetchall()
 
-                for row in rows:
+                for row2 in rows2:
+                    latestId= row2[0]
 
-                    latestId= row[0]
+                    latestQuizGroup= row2[1]
 
-                    latestQuizGroup= row[1]
 
-                    if((latestId + 1) % 100 == 0):
-                        latestQuizGroup  +=1
+                if(latestId and latestQuizGroup):
 
-                    QuizItens = quiz['quiz']
-                    cur.execute(
-                            sql.SQL(
-                                "INSERT INTO {} (kanji, hiragana, translation, quiz_group) VALUES (%s, %s, %s, %s)"
-                            ).format(table_name),
-                            (QuizItens['kanji'], QuizItens['hiragana'], QuizItens['translation'], latestQuizGroup),
+                    selectFirstIDLatestGroup =  sql.SQL(
+                        "SELECT MIN(id) FROM {} WHERE  quiz_group = ( SELECT MAX(quiz_group) FROM {} );"
+                        ).format(table_name,table_name)
+
+                    cur.execute(selectFirstIDLatestGroup)
+
+                    rows = cur.fetchall()
+
+                    for row in rows:
+
+                        latestMinId= row[0]
+
+                        if((latestId + 1) == (latestMinId +100)):
+                            latestQuizGroup  +=1
+
+                        QuizItens = quiz['quiz']
+                        cur.execute(
+                                sql.SQL(
+                                    "INSERT INTO {} (kanji, hiragana, translation, quiz_group) VALUES (%s, %s, %s, %s)"
+                                ).format(table_name),
+                                (QuizItens['kanji'], QuizItens['hiragana'], QuizItens['translation'], latestQuizGroup),
                         )
 
     except psycopg2.Error as error:
