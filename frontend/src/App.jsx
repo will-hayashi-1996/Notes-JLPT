@@ -19,6 +19,7 @@ function App() {
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
   const [currentQuiz,SetCurrentQuiz] = useState([])
+  const [currentGroupSize, setCurrentGroupSize] = useState(0)
   const [newQuiz,SetNewQuiz]=useState({
     kanji: null,
     hiragana:null,
@@ -87,6 +88,9 @@ function App() {
 
           setQuizzes(resultFinal)
           setPage(1)
+
+          setCurrentGroupSize(result.length)
+
 
         }
 
@@ -263,7 +267,7 @@ function App() {
             </button>
 
             <span className="text-sm text-slate-500">
-              Showing { currentQuiz?.length < 10 ? (10 * (page-1)) + (currentQuiz?.length) : (currentQuiz?.length * page) } of {quizzes.length * pageSize}
+              Showing { currentQuiz?.length < 10 ? (10 * (page-1)) + (currentQuiz?.length) : (currentQuiz?.length * page) } of {currentGroupSize}
             </span>
 
             <button
