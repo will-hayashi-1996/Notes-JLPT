@@ -134,7 +134,7 @@ export default function Quiz(){
 
             setCurrentAnswers(prev =>[...prev.toSorted(() => Math.random() - 0.5)])
 
-            setQuizzesToExclude(randomQuiz)
+            //setQuizzesToExclude(randomQuiz)
 
             setCurrentQuiz(randomQuiz)
 
@@ -151,16 +151,15 @@ export default function Quiz(){
 
     const answerQuiz =  async (item) => {
 
-
         if (item?.id === currentQuiz?.id && item?.kanji === currentQuiz?.kanji){
 
-            toast.success("Quiz respondido com sucesso!")
+            
 
             setCurrentAnswers([])
 
-            let resultFiltered = quizzes.filter((item) => ( item.id !=currentQuiz.id))
+            let resultFiltered = quizzes.length > 5 ? quizzes.filter((item) => ( item.id !=currentQuiz.id)) : quizzesToExclude.filter((item) => ( item.id !=currentQuiz.id))
 
-            const randomQuiz = resultFiltered[Math.floor(Math.random() * resultFiltered.length)] ?? null;
+            const randomQuiz = quizzes.length > 5 ? resultFiltered[Math.floor(Math.random() * resultFiltered.length)] : quizzes.filter((item) => ( item.id !=currentQuiz.id))[Math.floor(Math.random() * quizzes.length)];
 
             let toExclude = []
 
@@ -168,9 +167,9 @@ export default function Quiz(){
 
             for(let i=0; i<4; i++){
 
-                let randomResult = resultFiltered[Math.floor(Math.random() * resultFiltered.length)] ?? null
+                let randomResult = resultFiltered.filter((item) => (item.id!=randomQuiz.id))[Math.floor(Math.random() * resultFiltered.length)] ?? null
 
-                setCurrentAnswers(prev => [...prev,randomResult ])
+                setCurrentAnswers(prev => [...prev,randomResult])
 
                 toExclude.push(randomResult)
 
@@ -182,7 +181,19 @@ export default function Quiz(){
 
             setCurrentQuiz(randomQuiz)
 
-            setQuizzes(quizzes.filter((item) => ( item.id !=randomQuiz.id)))
+            setQuizzes(quizzes.filter((item) => ( item.id !== randomQuiz.id)))
+
+            setQuizzesToExclude(prev => [...prev,randomQuiz])
+
+            toast.success(`Quiz respondido com sucesso! Faltam apenas ${quizzes.length} questões`)
+
+            if(quizzes.length  === 1){
+
+                toast.custom("Grupo respondido!")
+
+                accessQuiz(selectedGroup+1)
+
+            }
 
 
         }else{
@@ -242,7 +253,7 @@ export default function Quiz(){
                         Array.from({ length: groupCount }, (_, i) => (
                             <span
                                 key={i}
-                                className="cursor-pointer flex h-10 min-w-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm"
+                                className={`cursor-pointer flex h-10 min-w-10 items-center justify-center rounded-lg border border-slate-200  px-3 text-sm font-medium text-slate-700 shadow-sm ${i+1 === selectedGroup ? "bg-blue-200 p-4 border-2": "bg-white"}` }
                             >
                                 <button onClick={() => requestSwitchGroup(i + 1)}>{i + 1}</button>
                             </span>
@@ -256,7 +267,7 @@ export default function Quiz(){
 
             
 
-            { (currentQuiz && !isLoadingQuizzes) &&  (
+            { (currentQuiz && !isLoadingQuizzes && quizzes.length > 0) &&  (
 
                 <>
                     <div className="w-36 h-24 mt-6 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
