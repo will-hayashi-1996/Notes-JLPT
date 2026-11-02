@@ -189,7 +189,7 @@ export default function Quiz(){
 
             if(quizzes.length  === 1){
 
-                toast.custom("Grupo respondido!")
+                toast.success("Grupo respondido!")
 
                 accessQuiz(selectedGroup+1)
 
